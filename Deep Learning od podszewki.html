@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Deep Learning od podszewki</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="iDash Workshop Warsaw" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/idash.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Deep Learning od podszewki
+### iDash Workshop Warsaw
+
+---
+
+
+
+
+
+background-image: url('www/img/logo_black.png')
+background-size: 50%
+class: center, bottom
+
+##&lt;a href = "https://idash.pl/" target = "blank"&gt;idash.pl&lt;/a&gt;
+
+---
+class: middle, center
+
+#W jaki sposób prowadzimy szkolenia?
+
+---
+## Tematy szkoleń
+
+- Machine Learning (_R, Python_)
+--
+
+- Deep Learning (_R, Python_)
+--
+
+- Przetwarzanie danych (_R, Python_)
+--
+
+- Wprowadzenie (_R, Python_)
+
+--
+
+i wiele innych. Bazowe programy dostępne na naszej &lt;a href = "https://idash.pl/" target = "blank"&gt;stronie&lt;/a&gt;.
+
+
+---
+class: inverse, center, middle
+# Trenerzy
+
+---
+class: inverse, center, middle
+# Zasady
+
+---
+## Plan na dzisiaj
+
+- Do czego służy propagacja w przód (forward propagation)
+
+
+--
+
+- Na czym polega propagacja wsteczna (back propagation)
+
+--
+
+- Czym jest Gradient Descent
+
+--
+
+- Do czego służy learning rate
+
+---
+## Technikalia
+
+&lt;center&gt;
+&lt;br&gt;
+Tą &lt;b&gt;prezentację&lt;/b&gt; znajdziecie pod następującym adresem:
+
+&lt;a href=""&gt;&lt;h2&gt;http://bit.do/iww_dl_slides&lt;/h2&gt;&lt;/a&gt;
+&lt;/center&gt;
+
+--
+
+&lt;center&gt;
+&lt;br&gt;
+Punktem wyjściowym jest &lt;b&gt;notebook&lt;/b&gt; na platformie Google Colab.
+
+&lt;a href=""&gt;&lt;h2&gt;http://bit.do/iww_dl_colab&lt;/h2&gt;&lt;/a&gt;
+&lt;/center&gt;
+
+
+---
+## Google Colab - tworzenie kopii
+
+&lt;center&gt;
+&lt;img src='www/img/colab.gif' width = "40%" style = "margin-top:30px"/&gt;
+&lt;/center&gt;
+
+---
+## Co dzisiaj zrobimy
+
+&lt;center&gt;
+&lt;img src='www/img/linear_backprop.gif' width = "40%" style = "margin-top:30px"/&gt;
+&lt;/center&gt;
+
+???
+Wygląda dość enigmatycznie ale przedstawia to proces trenowania modelu tak aby dostosował się do obserwacji, które posiadamy. Narzędzia służące do trenowania sieci neuronwych na to pozwalają i dlatego ... w sumie się tutaj spotkaliśmy.
+
+---
+class: inverse, center, middle
+
+# Powtórka
+
+---
+## Struktura sieci neuronowej
+
+.center[
+&lt;img src='www/img/struktura_sieci.png' width = "80%"/&gt;
+]
+
+???
+
+- Sieć neuronowa to po prostu złożona __funkcja__.
+- Warstwa sieci składa się z pojedynczych __neuronów__.
+- Sieć może mieć __wiele warstw__.
+
+
+---
+## Warstwa
+
+.pull-left[
+&lt;img src='www/img/Warstwa.png' width = "80%"/&gt;
+]
+
+.pull-right[
+Warstwa sieci składa się z pojedynczych __neuronów__.
+
+Sieć może mieć __wiele warstw__.
+]
+
+---
+## Neuron 
+
+.pull-left[
+&lt;img src='www/img/Neuron.png' width = "80%"/&gt;
+]
+
+.pull-right[
+Neuron to __najmniejszy element sieci__.
+]
+
+---
+## Neuron 
+
+.pull-left[
+&lt;img src='www/img/Neuron_input_annotated.png' width = "80%"/&gt;
+]
+
+.pull-right[
+Neuron to __najmniejszy element sieci__.
+
+Jest to w najprostszym wariancie __funkcja liniowa__ wielu zmiennych.
+]
+
+---
+## Neuron
+
+.pull-left[
+&lt;img src='www/img/Neuron_input_annotated.png' width = "80%"/&gt;
+]
+
+.pull-right[
+Neuron to __najmniejszy element sieci__.
+
+Jest to w najprostszym wariancie __funkcja liniowa__ wielu zmiennych.
+
+Bierze ona wartości z poprzedniej warstwy, mnoży je przez pewne __wagi__ i dodaje do siebie.
+]
+
+---
+## Neuron
+
+.pull-left[
+&lt;img src='www/img/Neuron_input_annotated.png' width = "80%"/&gt;
+]
+
+.pull-right[
+Neuron to __najmniejszy element sieci__.
+
+Jest to w najprostszym wariancie __funkcja liniowa__ wielu zmiennych.
+
+Bierze ona wartości z poprzedniej warstwy, mnoży je przez pewne __wagi__ i dodaje do siebie.
+
+`\(y = w_1 * x_1 + w_2 * x_2 + b\)`
+]
+
+---
+
+## Neuron 
+
+.pull-left[
+&lt;img src='www/img/Neuron_output.png' width = "80%"/&gt;
+]
+
+.pull-right[
+Obliczona wartość jest wykorzystywana jako wartość wejściowa (input) przez neurony znajdujące się w kolejnej warstwie.
+]
+---
+
+## Do czego zmierzamy?
+
+--
+
+Sieć dąży do tego, aby ustalić takie wagi, aby generowane predykcje były najbardziej zbliżone do faktycznych wartości widocznych w danych.
+
+--
+
+__Trenowanie sieci__, to zatem nic innego jak proces dostosowywania wag.
+
+---
+##Trenowanie sieci
+
+Trenowanie sieci jest __procesem iteracyjnym__:
+
+--
+
+1. Dane wejściowe pozwalają wyliczyć funkcję straty.
+
+--
+
+2. W oparciu o funkcję straty, wyznaczany jest kierunek zmian wag parametrów modelu. 
+
+--
+
+3. Optimizer aktualizuje wagi parametrów modelu.
+
+--
+
+4. Zaktualizowane wagi + te same dane wejściowe generują nową wartość funkcji straty.
+
+--
+
+5. Kroki 2-4 są powtarzane.
+
+---
+class: inverse, middle, center
+# &lt;a href = "http://bit.do/iww_colab" target = "_blank"&gt;Intro to Colab Notebook&lt;/a&gt;
+
+
+---
+class: inverse, middle, center
+
+# Zbudujmy sieć od zera!
+
+---
+class: inverse, middle, center
+
+# Bez użycia dedykowanych frameworków!!!
+
+---
+class: inverse, middle, center
+# A komu to potrzebne?
+
+---
+## Potrzebne aby...
+
+--
+
+- aby móc zrozumieć, jak sieci neuronowe działają _under the hood_.
+
+--
+
+- przy kolejnym nieudanym treningu Twojej sieci, wiedzieć co może być przyczyną złych wyników.
+
+--
+
+- móc pochwalić się przed kolegami/koleżankami :)
+
+
+---
+class: inverse, middle, center
+
+# Od czego zacząć?
+
+---
+class: inverse, middle, center
+
+# Od funkcji liniowej!
+
+
+---
+class: middle, center
+&lt;img src='www/img/linear_regression.png' width = "50%"/&gt;
+
+
+???
+Tak wygląda funkcja liniowa opisująca zależność pomiędzy jedną zmienną x oraz zmienną y.
+
+---
+## Funkcja liniowa pod postacią sieci
+
+--
+
+.pull-left[
+&lt;img src='www/img/linear_regresssion_details_left.png' width = "100%"/&gt;
+]
+
+--
+
+.pull-right[
+&lt;img src='www/img/linear_regresssion_details_right.png' width = "100%"/&gt;
+]
+
+
+---
+
+&lt;img src='www/img/forward_details_step1.png' width = "100%"/&gt;
+
+.graph-text-left[
+`$$z_{11} = x_1w_{11} + x_2w_{21} +b_1$$`
+]
+---
+
+&lt;img src='www/img/forward_details_step2.png' width = "100%"/&gt;
+
+.graph-text-left[
+`$$z_{11} = x_1w_{11} + x_2w_{21} +b_1$$`
+`$$z_{12} = x_1w_{12} + x_2w_{22} +b_2$$`
+]
+---
+
+&lt;img src='www/img/forward_details_step3.png' width = "100%"/&gt;
+
+
+.graph-text-left[
+`$$z_{11} = x_1w_{11} + x_2w_{21} +b_1$$`
+`$$z_{12} = x_1w_{12} + x_2w_{22} +b_2$$`
+`$$z_{13} = x_1w_{13} + x_2w_{23} +b_3$$`
+]
+---
+
+&lt;img src='www/img/forward_details_step4.png' width = "100%"/&gt;
+
+.graph-text-left[
+`$$z_{11} = x_1w_{11} + x_2w_{21} +b_1$$`
+`$$z_{12} = x_1w_{12} + x_2w_{22} +b_2$$`
+`$$z_{13} = x_1w_{13} + x_2w_{23} +b_3$$`
+`$$z_{14} = x_1w_{14} + x_2w_{24} +b_4$$`
+]
+
+---
+
+&lt;img src='www/img/forward_details_step5.png' width = "100%"/&gt;
+
+---
+## Czym jest zatem forward propagation?
+
+--
+
+.pull-left[
+__Forward propagation__ jest terminem, który oznacza proces przebiegu informacji od warstwy wejściowej (_input_) do warstwy wyjściowej (_output_).
+
+Wartość wyjściowa jest naszą predykcją.
+]
+
+.pull-right[
+&lt;img src='www/img/forward.png' width = "100%"/&gt;
+]
+
+
+---
+class: inverse, middle, center
+
+## Jak policzyć jak bardzo nasza predykcja odbiega od wartości prawdziwej?
+
+---
+class: inverse, middle, center
+
+# Za pomocą funkcji straty!
+
+---
+## Mean Square Error
+
+&lt;br&gt;&lt;br&gt;
+
+`$$square \ error = (\hat{y} - y)^2$$`
+
+
+
+--
+
+.text-bottom[
+`*` *w przypadku liczenia błędu na całym zbiorze danych należy policzyć __średnią__ błędów (__mean__ square error)*.
+]
+
+---
+## Inicjalizowanie wag parametrów
+
+- Aby móc rozpocząć trenowanie sieci musimy najpierw zainicjalizować wartości wag.
+
+--
+
+
+- Zwykle przyjmuje się, że wartości powinny być generowane z wybranego rozkładu (np. rozkładu jednostajnego (_uniform_) albo normalnego ze średnią 0).
+
+--
+
+- Generalnie, zainicjalizowane wartości wag powinny oscylować wokół wartości 0.
+
+---
+class: inverse
+### Zadanie 1a (5 min)
+
+W oparciu o teorię propagacji w przód (forward propagation) stwórz funkcję `get_linear_forward()`, która będzie zwracać wartość funkcji liniowej.
+
+---
+class: inverse
+### Zadanie 1a (3 min)
+
+Wykorzystaj testy jednostkowe aby sprawdzić, że wszytko zostało dobrze zaimplementowane.
+
+.small-code[
+
+```python
+x = np.array([1, 2, 3])
+y = np.array([ 3.9,  1.6,  6.9])
+
+y_hat = get_linear_forward(x=x, weight=3, bias=2)
+assert np.mean(y_hat) == 8
+assert y_hat.shape == (3,)
+```
+]
+
+---
+class: inverse
+### Zadanie 1b (5 min)
+
+Następnie stwórz mechanizm liczenia funkcji straty mean square error (MSE) (nazwa funkcji: `compute_mse_loss`).
+
+
+__Hint__: Funkcja `np.power` służy do podnoszenia wartości do potęgi.
+
+---
+class: inverse
+### Zadanie 1b (3 min)
+
+Wykorzystaj testy jednostkowe aby sprawdzić, że wszytko zostało dobrze zaimplementowane.
+
+.small-code[
+
+```python
+x = np.array([1, 2, 3])
+y = np.array([ 3.9,  1.6,  6.9])
+
+y_hat = get_linear_forward(x=x, weight=3, bias=2)
+assert np.mean(y_hat) == 8
+assert y_hat.shape == (3,)
+assert compute_mse_loss(y_hat, y) == 19.66
+```
+]
+
+---
+class: inverse
+### Zadanie 2 (10 min)
+
+1.&amp;nbsp;W oparciu o zbudowane funkcje z zadania 1a i 1b, stwórz funkcję `train`, która zwracać będzie błąd funkcji straty (MSE). Niech funkcja pozwala zdefiniować startowe wartości parametrów modelu (`weight` oraz `bias`). 
+
+2.&amp;nbsp;Zainicjuj wagi parametrów:
+
+.small-code[
+
+```python
+INIT_WEIGHT = 0.5
+INIT_BIAS = 0
+```
+]
+
+
+3.&amp;nbsp;Wykonaj funkcję `train` na danych `generated_data` (dostępne w Google Colab).
+
+---
+class: inverse
+### Zadanie 2 (10 min)
+
+Wykorzystaj testy jednostkowe aby sprawdzić, że wszytko zostało dobrze zaimplementowane.
+
+.small-code[
+
+```python
+first_step = train(x_train=generated_data.age, 
+                   y_train=generated_data.wage, 
+                   init_w=INIT_WEIGHT, 
+                   init_b=INIT_BIAS)
+
+assert type(first_step) == float
+assert first_step == 14596.130125359832
+```
+]
+
+
+---
+class: inverse, middle, center
+
+# Niezadowalające wyniki?
+
+???
+Policzyliśmy funkcję straty jeden raz i co dalej?
+
+---
+class: inverse, middle, center
+
+# Musimy rozpocząć trenowanie!
+
+---
+## Trenowanie 
+
+- Trenowanie sieci to proces dostosowywania wag.
+
+--
+
+- Trenowanie ma charakter iteracyjny - dążymy do tego aby __minimalizować__ funkcję straty.
+
+--
+
+- Zatem, naszym głównym zadaniem jest wyznaczenie __kierunku zmian__.
+
+???
+można dodać wykres z poszukiwaniem minima skomplikowanej drogi.
+
+---
+class: inverse, middle, center
+# Jak wyznaczyć kierunek zmian?
+
+---
+## Quiz - jak określić wartość zmian?
+
+&lt;center&gt;
+  &lt;img src='www/img/linear_regression_derivative.png' width = "50%"/&gt;
+&lt;/center&gt;
+
+???
+y = 0.3x + 20
+wykres y= 2x i spytać publiczność jaki kierunek zmian w paru wybranych punktach.
+Generalny wniosek że jest STAŁA!!
+
+---
+class: inverse, middle, center
+# Co jeśli ...
+
+---
+## ... mamy do czynienia z funkcją nieliniową? 
+
+--
+
+
+&lt;center&gt;
+  &lt;img src='www/img/non_linear_fun_derivative_s1.png' width = "50%"/&gt;
+&lt;/center&gt;
+
+---
+## ... mamy do czynienia z funkcją nieliniową? 
+
+&lt;center&gt;
+  &lt;img src='www/img/non_linear_fun_derivative_s2.png' width = "50%"/&gt;
+&lt;/center&gt;
+
+---
+## ... mamy do czynienia z funkcją nieliniową? 
+
+&lt;center&gt;
+  &lt;img src='www/img/non_linear_fun_derivative_s3.png' width = "50%"/&gt;
+&lt;/center&gt;
+
+--
+
+Jak wtedy wyznaczyć zmianę w danym punkcie?
+
+---
+class: inverse, middle, center
+# Istnieje jedno magiczne narzędzie!
+
+---
+## Zmiana w punkcie
+
+.pull-left[
+- Narzędzie, które pozwala nam wyznaczyć kąt nachylenia funkcji w danym punkcie, tym samym kierunek zmian.
+]
+
+.pull-right[
+&lt;img src='www/img/non_linear_fun_derivative_s3.png' width = "200%"/&gt;
+]
+
+---
+## Zmiana w punkcie
+
+.pull-left[
+- Narzędzie, które pozwala nam wyznaczyć kąt nachylenia funkcji w danym punkcie, tym samym kierunek zmian.
+
+- Kąt ten jest określany za pomocą __linii stycznej__ do danego punktu.
+]
+
+.pull-right[
+&lt;img src='www/img/non_linear_fun_derivative_s5.png' width = "200%"/&gt;
+]
+
+---
+## Zmiana w punkcie
+
+.pull-left[
+- Narzędzie, które pozwala nam wyznaczyć kąt nachylenia funkcji w danym punkcie, tym samym kierunek zmian.
+
+- Kąt ten jest określany za pomocą linii stycznej do danego punktu.
+
+- Tym magicznym narzędziem jest __pochodna funkcji__.
+]
+
+.pull-right[
+&lt;img src='www/img/non_linear_fun_derivative_s5.png' width = "200%"/&gt;
+]
+
+
+
+---
+class: inverse, middle, center
+
+# Jak wykorzystać wiedzę o pochodnej w kontekście trenowania sieci?
+???
+
+Jeśli musimy minimalizować funkcję straty to możemy wykorzystać wiedzę o pochodnej w
+celu wyznaczenia kierunku, w którym chcemy podążać. W tym przypadku, zależny nam nam na minimalizacji funkcji, tak więc, będziemy kierować się w dół.
+
+---
+## Poszukujemy punktu minimum
+
+&lt;center&gt;
+  &lt;img src='www/img/non_linear_fun_derivative_s6.png' width = "60%"/&gt;
+&lt;/center&gt;
+
+---
+class: middle, center, inverse
+# Pochodne w sieciach neuronowych
+
+---
+## Pochodna funkcji straty
+
+
+&lt;br&gt;&lt;br&gt;
+`$$Loss = (\hat{y} - y)^2 = ((wx +b) - y)^2$$`
+
+--
+
+- Dane są `y` (przewidywana wartość) jak również `x` (zmienne w modelu).
+
+--
+
+- Dla parametrów `w` i `b` musimy policzyć pochodne.
+
+--
+
+- Pochodną ze względu na konkretny parametr definiujemy zapisem `\(\frac{df}{d(parametr)}\)`, np. `\(\frac{df}{dw}\)`.
+
+---
+## Back propagation
+
+.pull-left[
+Cały proces wyliczania pochodnych dla wszystkich parametrów sieci nazywamy propagacją wsteczną (_back propagation_). 
+]
+
+.pull-right[
+&lt;img src='www/img/backprop.png' width = "100%"/&gt;
+]
+
+???
+The goal of backpropagation is to compute the partial derivatives ∂C/∂w and ∂C/∂b of the cost function C with respect to any weight w or bias b in the network.
+
+---
+## Back propagation
+
+.pull-left[
+Cały proces wyliczania pochodnych dla wszystkich parametrów sieci nazywamy propagacją wsteczną (_back propagation_). 
+
+Wektor wyliczonych pochodnych wszystkich parametrów jest nazywana __gradientem__.
+]
+
+.pull-right[
+&lt;img src='www/img/backprop.png' width = "100%"/&gt;
+]
+
+&lt;!-- --- --&gt;
+&lt;!-- class: inverse, middle, center --&gt;
+
+&lt;!-- [Rycina] Wykres (Error)^2 gdzie znajduje się funkcja liniowa po pierwszym kroku. --&gt;
+
+---
+class: inverse, middle, center
+# Jak &lt;a href = "https://www.derivative-calculator.net/#" target = "_blank"&gt;policzyć&lt;/a&gt; pochodną?
+ 
+
+
+---
+class: inverse
+
+### Zadanie 3a. (10 min)
+
+1. Policzmy pochodne! 
+
+1. Stwórz funkcję `get_backprop`, która posłuży do wyliczenia pochodnych parametrów modelu liniowego. 
+
+2. Do wyliczenia pochodnych skorzystaj ze wzoru na funkcję straty `\(Loss\)` (slajd 62) oraz z linku z poprzedniego slajdu.
+
+---
+class: inverse
+
+### Zadanie 3a. (10 min)
+
+Wykorzystaj testy jednostkowe aby sprawdzić, że wszytko zostało dobrze zaimplementowane.
+
+.small-code[
+
+```python
+x = np.array([1, 2, 3])
+y = np.array([ 3.9,  1.6,  6.9])
+output = get_linear_forward(x, weight = 3, bias = 2)
+
+back_step = get_backprop(output, x, y)
+assert len(back_step) == 2
+assert len(back_step[0]) == 3
+assert len(back_step[1]) == 3
+assert np.sum(back_step) == 75.60000000000001
+```
+]
+
+
+---
+## Gradienty zostały policzone ale...
+
+- Dla każdej obserwacji w zbiorze funkcja `get_backprop` policzy gradient (czyli wektor pochodnych).
+
+--
+
+- Mając `N` obserwacji, mamy `N` gradientów. A naszym zadaniem jest wyznaczenie __jednego__ kierunku zmian.
+
+--
+
+- Co zrobić?
+
+---
+class: inverse
+
+### Zadanie 3b. (5 min)
+
+Dokonaj odpowiednich przeształceń funkcji `get_backprop`, aby zwracała jeden gradient z pochodnymi dla parametrów sieci.
+
+---
+class: inverse
+
+### Zadanie 3b. (5 min)
+
+Wykorzystaj testy jednostkowe.
+
+.small-code[
+
+```python
+x = np.array([1, 2, 3])
+y = np.array([ 3.9,  1.6,  6.9])
+output = get_linear_forward(x, weight = 3, bias = 2)
+
+back_step = get_backprop(output, x, y)
+assert len(back_step) == 2
+assert type(back_step[0]) == np.float64
+assert type(back_step[1]) == np.float64
+assert np.sum(back_step) == 25.2
+```
+]
+
+---
+class: redbg
+## Under the hood*
+
+&lt;br&gt;
+`$$Loss = ((wx +b) - y)^2$$`
+
+- Gdy funkcja jest zależna od więcej niż jednej zmiennej to wtedy do wyliczenia pochodnej musimy wykorzystać tzw. __pochodne cząstkowe__.
+
+--
+
+- Pozwala nam ocenić, jak szybko zmienia się wartość funkcji gdy manipulujemy wartością tylko jednej zmiennej, a wartości pozostałych zmiennych nie zmieniają się.
+
+--
+
+- Pochodne cząstkowe oznaczamy zapisem `\(\frac{\partial f}{\partial w}\)`.
+
+---
+class: redbg
+## Under the hood*
+
+Ze względu na to że funkcja straty jest __funkcją złożoną__ (tj. `\(f(g(x))\)`), możemy skorzystać z reguły łańcuchowej (_chain rule_).
+
+--
+
+`$$Loss= ((wx +b) - y )^2$$`
+
+--
+
+`$$\frac{\partial L}{\partial w} = \frac{\partial L}{\partial \hat{y}} * \frac{\partial \hat{y}}{\partial w}$$`
+
+--
+
+`$$\frac{\partial L}{\partial w} = (( \hat{y} - y)^2)' * (wx+b)'$$`
+
+--
+
+`$$\frac{\partial L}{\partial w} = 2(\hat{y} - y) * x, \frac{\partial L}{\partial b} = 2(\hat{y} - y)$$` 
+
+
+???
+Funkcja złożona to funkcja w funkcji.
+
+---
+class: redbg
+## Under the hood*
+
+.pull-left[
+
+
+Taka forma wyliczania pochodnych jest niezbędna przy bardziej rozbudowanych sieciach neuronowych.
+]
+
+.pull-right.white-graph[
+&lt;img src='www/img/backprop_regresssion_details.png' width = "80%"/&gt;
+]
+
+---
+class: redbg
+## Under the hood*
+
+.pull-left[
+
+
+Taka forma wyliczania pochodnych jest niezbędna przy bardziej rozbudowanych sieciach neuronowych.
+
+`$$\frac{\partial L}{\partial w_{11}} = \frac{\partial L}{\partial \hat{y}} * \frac{\partial \hat{y}}{\partial w_{11}}$$`
+]
+
+.pull-right.white-graph[
+&lt;img src='www/img/backprop_regresssion_details_step1.png' width = "80%"/&gt;
+]
+
+---
+class: redbg
+## Under the hood*
+
+.pull-left[
+
+
+Taka forma wyliczania pochodnych jest niezbędna przy bardziej rozbudowanych sieciach neuronowych.
+
+`$$\frac{\partial L}{\partial w_{11}} = \frac{\partial L}{\partial \hat{y}} * \frac{\partial \hat{y}}{\partial w_{11}}$$`
+
+`$$\frac{\partial L}{\partial w_{12}} = \frac{\partial L}{\partial \hat{y}} * \frac{\partial \hat{y}}{\partial w_{12}}$$`
+]
+
+.pull-right.white-graph[
+&lt;img src='www/img/backprop_regresssion_details_step2.png' width = "80%"/&gt;
+]
+
+---
+class: redbg
+## Under the hood*
+
+.pull-left[
+
+
+Taka forma wyliczania pochodnych jest niezbędna przy bardziej rozbudowanych sieciach neuronowych.
+
+
+`$$\frac{\partial L}{\partial w_{11}} = \frac{\partial L}{\partial \hat{y}} * \frac{\partial \hat{y}}{\partial w_{11}}$$`
+
+`$$\frac{\partial L}{\partial w_{12}} = \frac{\partial L}{\partial \hat{y}} * \frac{\partial \hat{y}}{\partial w_{12}}$$`
+
+`$$\frac{\partial L}{\partial b_{1}} = \frac{\partial L}{\partial \hat{y}} * \frac{\partial \hat{y}}{\partial b_{1}}$$`
+]
+
+.pull-right.white-graph[
+&lt;img src='www/img/backprop_regresssion_details_step3.png' width = "80%"/&gt;
+]
+
+---
+class: inverse, middle, center
+
+## Pochodne wyliczone a ciągle stoję w miejscu!
+
+---
+class: inverse, middle, center
+
+# Pomysły?
+
+---
+class: inverse, middle, center
+
+# Musimy się jakoś ruszyć!
+
+---
+class: inverse, middle, center
+
+# Gradient Descent na ratunek!
+
+---
+## Gradient Descent
+
+Gradient Descent jest algorytmem optymalizacyjnym.
+
+--
+
+- Jego celem jest znalezienie minimum danej funkcji.
+
+--
+
+- Jest odpowiedzialny za modyfikowanie wag parametrów modelu w oparciu o wyliczoną pochodną.
+
+--
+
+- Po aktualizacji wag parametrów, następuje ponowna iteracja forward &amp; back propagation aż do odnalezienia minimum funkcji straty.
+
+---
+class: middle, center
+&lt;img src='www/img/gradient_descent.png' width = "80%"/&gt;
+
+
+---
+## Gradient Descent
+
+`$$w_{new} = w_{current} - \alpha * \frac{\partial L}{\partial w}$$`
+
+--
+
+- `\(w_{new}, w_{current}\)` - obecna i zaktualizowana wag parametru `w`.
+
+- `\(\frac{\partial f}{\partial w}\)` - pochodna dla parametru `w` względem funkcji straty `\(L\)`.
+
+--
+
+- Do czego __służy `\(\alpha\)`__?
+---
+## Parametr `\(\alpha\)`
+
+.pull-left[
+
+- Parametr `\(\alpha\)` zwany __learning rate__ jest kluczowym elementem algorytmu Gradient Descent.
+]
+
+.pull-right[
+&lt;br&gt;
+`$$w_{new} = w_{current} - \alpha*\frac{\partial L}{\partial w}$$`
+]
+
+---
+## Parametr `\(\alpha\)`
+
+.pull-left[
+
+- Parametr `\(\alpha\)` zwany __learning rate__ jest kluczowym elementem algorytmu Gradient Descent.
+
+- Learning rate kontroluje tempo, w jakim nasz model będzie trenowany.
+]
+
+.pull-right[
+&lt;br&gt;
+`$$w_{new} = w_{current} - {\color{red}\alpha} {\color{red}*} {\color{red}{\frac{\partial L}{\partial w}}}$$`
+]
+
+---
+## Na co uważać
+
+Podczas ustalania wartości _learning rate_ należy być ostrożny.
+
+--
+
+__Zbyt duża wartość `\(\alpha\)`__
+
+Trenowanie się nie powiedzie, ponieważ algorytm Gradient Descent w kolejnych iteracjach będzie powodować wzrost błędu funkcji straty, tym samym nie możliwe będzie znalezienie minimum.
+
+--
+
+__Zbyt mała wartość `\(\alpha\)`__
+
+Proces trenowania będzie trwać dłużej. Może również skutkować tym, że globalne minimum nie zostanie odnalezione.
+
+---
+class: inverse, middle, center
+
+# &lt;a href = "https://developers.google.com/machine-learning/crash-course/fitter/graph?source=post_page-----dde5dc9be06e" target = "_blank"&gt;Playground&lt;/a&gt;
+
+---
+## Jak ustawić odpowiednio learning rate?
+
+--
+
+- Nie ma jednej gotowej reguły. Wszystko zależy od struktury sieci, a także od danych.
+
+--
+
+- W teorii, wartość learning rate powinna definiowana z przedziału `\(\alpha \in (0,1)\)`. 
+
+
+--
+
+- W praktyce, wartość learning rate powinna raczej oscylować w przedziale `\(\alpha \in (0.0001,0.1)\)`.
+
+--
+
+- Odpowiedni _learning rate_ jest zwykle definiowany na zasadzie prób i błędów oraz na bazie wcześniejszych doświadczeń w pracy z sieciami neuronowymi.
+
+???
+
+---
+class: inverse
+### Zadanie 4. (5 min)
+
+Stwórz funkcję `update_parameters`, która będzie wyliczać nowe zaktualizowane parametry `w` oraz `b`.
+
+---
+class: inverse
+### Zadanie 4. (5 min)
+
+Wykorzystaj testy jednostkowe.
+
+.small-code[
+
+```python
+w_current = 1
+b_current = 0
+alpha = 0.1
+w_gradient = 0.7
+b_gradient = -0.01
+
+new_params = update_parameters(
+              w_current, b_current, 
+              alpha,w_gradient, b_gradient)
+
+assert len(new_params) == 2
+assert new_params[0] == 0.93
+assert new_params[1] == 0.001
+```
+]
+
+---
+class: inverse
+### Zadanie 5. (15 min)
+
+.text22[
+1.Zmodyfikuj funkcję `train`, tak aby umożliwiała znalezienie optymalnych wartości parametrów modelu.
+
+- Dodaj argument `epochs`, które będzie umożliwiał wielokrotne powtarzanie kroków propagacji.
+- Niech na wyjściu funkcja zwraca nowe zaktualizowane wagi parametrów `weight` i `bias`.
+- *Niech funkcja wyświetla wyliczony błąd za pomocą funkcji `compute_mse_loss` po każdej zapuszczonej epoce.
+]
+
+.text22[
+2.&amp;nbsp;Wykonaj funkcję `train` na 1000 epokach na zbiorze `generated_data`, manipulując parametrem _learning rate_.
+]
+
+--
+
+.text22[
+Czy Twoja sieć uzyskuje zbliżone rezultaty? 
+]
+
+.small-code[
+
+```python
+weight = 2.45
+bias = 3.93
+```
+]
+
+---
+class: inverse
+### Zadanie 5. (15 min)
+
+Wykorzystaj testy jednostkowe.
+
+.small-code[
+
+```python
+x = np.array([1, 2, 3])
+y = np.array([ 3.9,  1.6,  6.9])
+init_weight = 0.1
+init_bias = 0
+alpha = 0.1
+epochs = 10
+
+final_params = train(x, y, init_weight, init_bias, alpha, epochs)
+rounded_final_params = np.round(final_params, 2)
+assert len(final_params) == 2
+assert rounded_final_params[0] == 1.65
+assert rounded_final_params[1] == 0.79
+```
+]
+
+---
+## Learning rate a normalizacja danych
+
+- Normalizacja danych wejściowych może przyspieszyć proces trenowania.
+
+--
+
+- W trakcie mniejszej liczby epok może osiągnąć minimum funkcji straty.
+
+--
+
+- Należy jednak wtedy pamiętać, żeby na nowo manipulować parametrem _learning rate_, ponieważ pochodne będę się różniły, aniżeli to miało miejsce przy oryginalnych danych.
+
+???
+Opisać co się wtedy stanie i jak postępować (może zrobić zadanie z tego.) - generalnie że szybciej się uczy.
+
+---
+class: inverse
+### Zadanie 6*. (10 min)
+
+1. Znormalizuj dane wejściowe (pomocniczy  &lt;a href = "https://idashpl.github.io/wprowadzenie_do_deep_learningu/prezentacja/dl_intro.html#160" target = "_blank"&gt;link&lt;/a&gt;).
+
+2. Wykonaj funkcję `train` na 10 epokach.
+
+Czy sieć szybciej się wytrenuje?
+
+---
+class: inverse, middle, center
+
+# Zrobiliśmy to!
+
+---
+class: inverse, middle, center
+
+# Podsumowanie
+
+---
+## Podsumowanie
+
+
+- Udało się nam zbudować bardzo prostą sieć od zera.
+
+--
+
+- Poznaliśmy najważniejsze koncepty, dzięki którym możliwe jest trenowanie sieci neuronowych.
+
+--
+
+- Musimy jednak pamiętać, że głębokie sieci składają się z __tysięcy parametrów__ i mogą posiadać __wiele warstw__ i wtedy cały proces trenowania, szczególnie propagacja wsteczna (_back propagation_) jest zadaniem bardziej złożonym.
+
+---
+class: inverse, center, middle
+
+## Kolejne spotkanie już 24. października. 
+## Do zobaczenia!
+
+---
+class: inverse, bottom, center
+background-image: url('www/img/logo_white.png')
+background-size: 50%
+
+mb@idash.pl mo@idash.pl
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_HTMLorMML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
